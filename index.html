@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园二手交易平台 - 首页</title>
+    <!-- Bootstrap CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net/npm" crossorigin>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin></script>
+</head>
+<body>
+<div class="container-fluid px-0">
+
+    <!-- 头部 -->
+    <div class="site-header">
+        <h1>🏪 校园二手交易平台</h1>
+        <p>让闲置物品焕发新生命</p>
+        <div class="identity-box">
+            <span class="identity-label">当前身份</span>
+            <select id="identitySelect" class="identity-select" onchange="switchIdentity(this.value)">
+                <option value="admin">👑 管理员</option>
+                <option value="u001">👤 u001</option>
+                <option value="u002">👤 u002</option>
+                <option value="u003">👤 u003</option>
+                <option value="u004">👤 u004</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 导航 -->
+    <nav class="site-nav">
+        <a href="index.html"  class="nav-link active">首页</a>
+        <a href="item.html"   class="nav-link">商品列表</a>
+        <a href="user.html"   class="nav-link">用户列表</a>
+        <a href="order.html"  class="nav-link">订单列表</a>
+        <a href="query.html"  class="nav-link">统计查询</a>
+    </nav>
+
+    <!-- 消息提示 -->
+    <div id="message"></div>
+
+    <!-- 页面内容 -->
+    <div class="site-content">
+        <div class="home-content text-center">
+            <h2 class="mb-2">欢迎来到校园二手交易平台</h2>
+            <p class="text-muted mb-4">发现校园内的优质二手商品，与同学们分享和交易</p>
+
+            <!-- 功能导航卡片 -->
+            <div class="row g-3 justify-content-center mb-5">
+                <div class="col-6 col-md-3">
+                    <a href="item.html" class="text-decoration-none">
+                        <div class="feature-card h-100">
+                            <div class="feature-icon">📦</div>
+                            <h3>商品列表</h3>
+                            <p>浏览所有出售中的商品，查看详细信息和价格</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="user.html" class="text-decoration-none">
+                        <div class="feature-card h-100">
+                            <div class="feature-icon">👥</div>
+                            <h3>用户列表</h3>
+                            <p>了解卖家信息，获取联系方式</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="order.html" class="text-decoration-none">
+                        <div class="feature-card h-100">
+                            <div class="feature-icon">🧾</div>
+                            <h3>订单列表</h3>
+                            <p>查看已成交的订单和交易历史</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="query.html" class="text-decoration-none">
+                        <div class="feature-card h-100">
+                            <div class="feature-icon">📊</div>
+                            <h3>统计查询</h3>
+                            <p>聚合统计、视图查询，了解平台全貌</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 平台统计 -->
+            <div class="stats-section">
+                <h3 class="stats-section-title">📊 平台统计</h3>
+                <div id="homeStats" class="stats-grid">
+                    <div class="stat-card"><div class="label">商品总数</div><div class="value">-</div></div>
+                    <div class="stat-card"><div class="label">出售中</div><div class="value">-</div></div>
+                    <div class="stat-card"><div class="label">已售出</div><div class="value">-</div></div>
+                    <div class="stat-card"><div class="label">平均价格</div><div class="value">-</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="js/supabase.js"></script>
+<script defer src="app.js?v=9"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        updateHomeStats();
+        validateDataConsistency();   // 🔍 启动时检查数据一致性
+        showMessage('欢迎使用校园二手交易平台！', 'info');
+    });
+</script>
+</body>
+</html>

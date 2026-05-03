@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单列表 - 校园二手交易平台</title>
+    <!-- Bootstrap CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net/npm" crossorigin>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin></script>
+</head>
+<body>
+<div class="container-fluid px-0">
+
+    <div class="site-header">
+        <h1>🏪 校园二手交易平台</h1>
+        <p>让闲置物品焕发新生命</p>
+        <div class="identity-box">
+            <span class="identity-label">当前身份</span>
+            <select id="identitySelect" class="identity-select" onchange="switchIdentity(this.value)">
+                <option value="admin">👑 管理员</option>
+                <option value="u001">👤 u001</option>
+                <option value="u002">👤 u002</option>
+                <option value="u003">👤 u003</option>
+                <option value="u004">👤 u004</option>
+            </select>
+        </div>
+    </div>
+
+    <nav class="site-nav">
+        <a href="index.html"  class="nav-link">首页</a>
+        <a href="item.html"   class="nav-link">商品列表</a>
+        <a href="user.html"   class="nav-link">用户列表</a>
+        <a href="order.html"  class="nav-link active">订单列表</a>
+        <a href="query.html"  class="nav-link">统计查询</a>
+    </nav>
+
+    <div id="message"></div>
+
+    <div class="site-content">
+        <!-- 页头：标题 + 搜索框 -->
+        <div class="page-header">
+            <h2>🧾 订单列表</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 搜索商品名、买家、卖家…" oninput="doSearch()" />
+            </div>
+        </div>
+
+        <!-- 统计条 -->
+        <div id="statsBar" class="stats-bar">
+            <div class="stats-pills"><span class="stat-pill">加载中…</span></div>
+        </div>
+
+        <!-- 查询按钮组 -->
+        <div class="query-section">
+            <div class="section-title">🔗 连接查询</div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <button class="btn btn-primary" onclick="showAllOrders()">全部订单</button>
+                <!-- 按发布用户查询：下拉选择 -->
+                <div class="seller-query-wrap">
+                    <select id="sellerSelect" class="seller-select">
+                        <option value="">— 选择发布用户 —</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="querySellerSoldStatus()">查询购买情况</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 结果区 -->
+        <div id="contentContainer"></div>
+    </div>
+</div>
+
+<script defer src="js/supabase.js"></script>
+<script defer src="app.js?v=9"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadOrderStats();
+        showAllOrders();
+        loadSellerOptions();
+    });
+
+    // 动态加载发布用户到下拉框
+    async function loadSellerOptions() {
+        const sel = document.getElementById('sellerSelect');
+        if (!sel) return;
+        try {
+            const { data: users } = await supabase.from('user').select('user_id, user_name').order('user_id');
+            (users || []).forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.user_id;
+                opt.textContent = `${u.user_id} / ${u.user_name || u.user_id}`;
+                sel.appendChild(opt);
+            });
+        } catch (e) { console.warn('loadSellerOptions 失败:', e.message); }
+    }
+
+    // 查询选中用户的商品购买情况（对接 app.js 中的 queryU001SoldStatus 泛化版）
+    function querySellerSoldStatus() {
+        const sel = document.getElementById('sellerSelect');
+        const userId = sel ? sel.value : '';
+        if (!userId) { showMessage('⚠️ 请先选择一个发布用户', 'info'); return; }
+        queryUserSoldStatus(userId);
+    }
+
+    async function loadOrderStats() {
+        const el = document.getElementById('statsBar');
+        if (!el) return;
+        try {
+            const [{ count: total }, { data: prices }] = await Promise.all([
+                supabase.from('orders').select('*', { count: 'exact', head: true }),
+                supabase.from('item').select('price').eq('status', 1)
+            ]);
+            const totalAmt = (prices || []).reduce((s, i) => s + i.price, 0).toFixed(2);
+            el.innerHTML = `<div class="stats-pills">
+                <span class="stat-pill">🧾 订单总数 <strong>${total || 0}</strong></span>
+                <span class="stat-pill pill-blue">💰 已售总金额 <strong>¥${totalAmt}</strong></span>
+            </div>`;
+        } catch (e) { el.innerHTML = ''; }
+    }
+</script>
+</body>
+</html>

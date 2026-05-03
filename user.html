@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户列表 - 校园二手交易平台</title>
+    <!-- Bootstrap CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net/npm" crossorigin>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin></script>
+</head>
+<body>
+<div class="container-fluid px-0">
+
+    <div class="site-header">
+        <h1>🏪 校园二手交易平台</h1>
+        <p>让闲置物品焕发新生命</p>
+        <div class="identity-box">
+            <span class="identity-label">当前身份</span>
+            <select id="identitySelect" class="identity-select" onchange="switchIdentity(this.value)">
+                <option value="admin">👑 管理员</option>
+                <option value="u001">👤 u001</option>
+                <option value="u002">👤 u002</option>
+                <option value="u003">👤 u003</option>
+                <option value="u004">👤 u004</option>
+            </select>
+        </div>
+    </div>
+
+    <nav class="site-nav">
+        <a href="index.html"  class="nav-link">首页</a>
+        <a href="item.html"   class="nav-link">商品列表</a>
+        <a href="user.html"   class="nav-link active">用户列表</a>
+        <a href="order.html"  class="nav-link">订单列表</a>
+        <a href="query.html"  class="nav-link">统计查询</a>
+    </nav>
+
+    <div id="message"></div>
+
+    <div class="site-content">
+        <!-- 页头：标题 + 搜索框 -->
+        <div class="page-header">
+            <h2>👥 用户列表</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 搜索用户ID、姓名、电话…" oninput="doSearch()" />
+            </div>
+        </div>
+
+        <!-- 统计条 -->
+        <div id="statsBar" class="stats-bar">
+            <div class="stats-pills"><span class="stat-pill">加载中…</span></div>
+        </div>
+
+        <!-- 查询按钮组 -->
+        <div class="query-section">
+            <div class="section-title">📊 用户查询</div>
+            <div class="btn-group flex-wrap gap-2">
+                <button class="btn btn-primary" onclick="showAllUsers()">全部用户</button>
+                <button class="btn btn-primary" onclick="queryMostActiveUser()">🏆 按发布数量排序</button>
+            </div>
+        </div>
+
+        <!-- 结果区 -->
+        <div id="contentContainer"></div>
+    </div>
+</div>
+
+<script defer src="js/supabase.js"></script>
+<script defer src="app.js?v=9"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUserStats();
+        showAllUsers();
+    });
+
+    async function loadUserStats() {
+        const el = document.getElementById('statsBar');
+        if (!el) return;
+        try {
+            const { count } = await supabase.from('user').select('*', { count: 'exact', head: true });
+            el.innerHTML = `<div class="stats-pills">
+                <span class="stat-pill">👥 用户总数 <strong>${count || 0}</strong></span>
+            </div>`;
+        } catch (e) { el.innerHTML = ''; }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品列表 - 校园二手交易平台</title>
+    <!-- Bootstrap CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net/npm" crossorigin>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin></script>
+</head>
+<body>
+<div class="container-fluid px-0">
+
+    <!-- 头部 -->
+    <div class="site-header">
+        <h1>🏪 校园二手交易平台</h1>
+        <p>让闲置物品焕发新生命</p>
+        <div class="identity-box">
+            <span class="identity-label">当前身份</span>
+            <select id="identitySelect" class="identity-select" onchange="switchIdentity(this.value)">
+                <option value="admin">👑 管理员</option>
+                <option value="u001">👤 u001</option>
+                <option value="u002">👤 u002</option>
+                <option value="u003">👤 u003</option>
+                <option value="u004">👤 u004</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 导航 -->
+    <nav class="site-nav">
+        <a href="index.html"  class="nav-link">首页</a>
+        <a href="item.html"   class="nav-link active">商品列表</a>
+        <a href="user.html"   class="nav-link">用户列表</a>
+        <a href="order.html"  class="nav-link">订单列表</a>
+        <a href="query.html"  class="nav-link">统计查询</a>
+    </nav>
+
+    <!-- 消息提示 -->
+    <div id="message"></div>
+
+    <div class="site-content">
+        <div class="page-header">
+            <h2>📦 商品列表</h2>
+            <!-- 搜索框 -->
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 搜索商品名、分类、卖家ID…" oninput="doSearch()" />
+            </div>
+        </div>
+
+        <!-- 统计条（自动加载） -->
+        <div id="statsBar" class="stats-bar">
+            <div class="stats-pills"><span class="stat-pill">加载统计中…</span></div>
+        </div>
+
+        <!-- 功能卡片区 -->
+        <div class="func-cards">
+
+            <!-- 基础查询卡片 -->
+            <div class="func-card-wrap">
+                <div class="func-card" onclick="toggleCard('card-query')">
+                    <div class="func-card-header">
+                        <span class="func-card-icon">🔍</span>
+                        <span class="func-card-title">基础查询</span>
+                        <span class="func-card-desc">售卖情况 / 价格区间 / 商品类别 / 发布用户</span>
+                        <span class="func-card-arrow" id="arrow-card-query">▼</span>
+                    </div>
+                </div>
+                <div id="card-query" class="func-card-body active">
+                    <!-- 筛选维度 -->
+                    <div class="filter-group">
+                        <div class="filter-row">
+                            <span class="filter-label">售卖情况</span>
+                            <div class="filter-tags" id="filter-status">
+                                <span class="ftag ftag-active" data-dim="status" data-val="" onclick="toggleFilterTag(this)">全部</span>
+                                <span class="ftag" data-dim="status" data-val="0" onclick="toggleFilterTag(this)">🟢 出售中</span>
+                                <span class="ftag" data-dim="status" data-val="1" onclick="toggleFilterTag(this)">🔴 已售出</span>
+                            </div>
+                        </div>
+                        <div class="filter-row">
+                            <span class="filter-label">价格区间</span>
+                            <div class="filter-tags" id="filter-price">
+                                <span class="ftag ftag-active" data-dim="price" data-val="" onclick="toggleFilterTag(this)">不限</span>
+                                <span class="ftag" data-dim="price" data-val="0-30" onclick="toggleFilterTag(this)">¥0 – ¥30</span>
+                                <span class="ftag" data-dim="price" data-val="30-100" onclick="toggleFilterTag(this)">¥30 – ¥100</span>
+                                <span class="ftag" data-dim="price" data-val="100-300" onclick="toggleFilterTag(this)">¥100 – ¥300</span>
+                                <span class="ftag" data-dim="price" data-val="300-" onclick="toggleFilterTag(this)">¥300 以上</span>
+                            </div>
+                        </div>
+                        <div class="filter-row">
+                            <span class="filter-label">商品类别</span>
+                            <div class="filter-tags" id="filter-category">
+                                <span class="ftag ftag-active" data-dim="category" data-val="" onclick="toggleFilterTag(this)">全部</span>
+                                <!-- 类别 tag 由 JS 动态填充 -->
+                            </div>
+                        </div>
+                        <div class="filter-row">
+                            <span class="filter-label">发布用户</span>
+                            <div class="filter-tags" id="filter-seller">
+                                <span class="ftag ftag-active" data-dim="seller" data-val="" onclick="toggleFilterTag(this)">全部</span>
+                                <!-- 用户 tag 由 JS 动态填充 -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 执行查询 -->
+                    <div class="filter-actions">
+                        <button class="btn btn-primary" onclick="runFilterQuery()">🔍 执行查询</button>
+                        <button class="btn btn-outline-secondary" onclick="resetFilterQuery()">↺ 重置</button>
+                        <span class="filter-summary" id="filterSummary"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据操作卡片 -->
+            <div class="func-card-wrap func-card-wrap-ops">
+                <div class="func-card" onclick="toggleCard('card-ops')">
+                    <div class="func-card-header">
+                        <span class="func-card-icon">✏️</span>
+                        <span class="func-card-title">数据操作</span>
+                        <span class="func-card-desc">插入 / 修改价格 / 删除</span>
+                        <span class="func-card-arrow" id="arrow-card-ops">▶</span>
+                    </div>
+                </div>
+                <div id="card-ops" class="func-card-body">
+                    <!-- 插入新商品 -->
+                    <div class="ops-card">
+                        <div class="ops-card-title">➕ 插入新商品</div>
+                        <div class="ops-form">
+                            <input type="text"   id="newItemId"       class="form-input" placeholder="商品ID（如 i011）" />
+                            <input type="text"   id="newItemName"     class="form-input" placeholder="商品名称" />
+                            <input type="text"   id="newItemCategory" class="form-input" placeholder="分类（如 DailyGoods）" />
+                            <input type="number" id="newItemPrice"    class="form-input" placeholder="价格（元）" min="0" step="0.01" />
+                            <input type="text"   id="newItemSeller"   class="form-input" placeholder="卖家ID（如 u001）" />
+                            <button class="btn btn-success" onclick="insertNewItem()">确认插入</button>
+                        </div>
+                    </div>
+                    <!-- 修改价格 -->
+                    <div class="ops-card">
+                        <div class="ops-card-title">💱 修改商品价格</div>
+                        <div class="ops-form">
+                            <input type="text"   id="updateItemId"    class="form-input" placeholder="商品ID（如 i001）" />
+                            <input type="number" id="updateItemPrice" class="form-input" placeholder="新价格（元）" min="0" step="0.01" />
+                            <button class="btn btn-warning" onclick="updateItemPrice()">确认修改</button>
+                        </div>
+                    </div>
+                    <!-- 删除商品（权限控制：管理员删任意，普通用户只能删自己的未售出商品） -->
+                    <div id="delete-ops-card" class="ops-card">
+                        <div class="ops-card-title">🗑️ 删除未售出商品</div>
+                        <div class="ops-form">
+                            <input type="text" id="deleteItemId" class="form-input" placeholder="商品ID（如 i001）" />
+                            <button class="btn btn-danger" onclick="deleteUnsoldItem()">确认删除</button>
+                        </div>
+                        <p id="delete-hint" style="margin:6px 0 0; font-size:0.82em; color:#888;"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 结果区域 -->
+        <div id="contentContainer"></div>
+    </div>
+</div>
+
+<script defer src="js/supabase.js"></script>
+<script defer src="app.js?v=9"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadItemStats();
+        showAllItems();
+        initFilterTags();
+        refreshOpsCard();  // 根据身份初始化卖家ID字段（普通用户只读）
+    });
+</script>
+</body>
+</html>
